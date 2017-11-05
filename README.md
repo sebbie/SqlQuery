@@ -1,9 +1,7 @@
 # SqlQuery
------
 Fast, lightweight and strongly typed library to query stored procedures. It offers easy and simple to use strongly typed API, supports TVPs as well as multiple result sets.
 
 # Setup in 30 seconds
------
 
 1. Install-Package SqlQuery
 2. Open SqlProcs.tt and setup connection string, ie.
@@ -24,7 +22,6 @@ Fast, lightweight and strongly typed library to query stored procedures. It offe
 Run & voilla, you just queried database.
 
 # Configuration options
------
 
 Code below declares dbo.GetAllMakesAndModels stored proc and names result sets "Make" and "Model" respectively. Naming result sets is optional, T4 will create collections named Set1, Set2, Set3 and so on.
 
@@ -151,7 +148,6 @@ public partial class DboGetAllMakesAndModelsResult
 ```
 
 # Dealing with problems
------
 
 Should you encounter a problem try to open SqlQuery.tt and select "Current Document" in "Error list". This will show only issues related to SqlQuery instead of flooding window with large numbers of errors caused by side effects.
 
