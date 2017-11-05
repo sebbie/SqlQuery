@@ -12,7 +12,7 @@
 			<tags>Sql Server, Stored Procedure</tags>
 		</metadata>
 		<files>
-			<file src="SqlQuery\SqlProcs.tt" target="content\SqlProcs.tt" />
-			<file src="SqlQuery\SqlQuery.tt" target="content\SqlQuery.tt" />
+			<file src="SqlProcs.tt" target="content\SqlProcs.tt" />
+			<file src="SqlQuery.tt" target="content\SqlQuery.tt" />
 		</files>
 	</package>
