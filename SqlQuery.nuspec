@@ -4,12 +4,13 @@
 			<id>SqlQuery</id>
 			<version>0.2.0</version>
 			<authors>Sebastian Pienio</authors>
-			<licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+			<license type="expression">MIT</license>
 			<requireLicenseAcceptance>true</requireLicenseAcceptance>
-			<description>SqlQuery library to query SQL Server stored procedures faster, easier and quicker</description>
+			<description>SqlQuery library to query SQL Server stored procedures faster, easier and quicker. MIT licensed, source code on GitHub, concept proven in high throughput production environments.</description>
 			<releaseNotes>This is interim release with single file</releaseNotes>
 			<copyright>2017-2019</copyright>
 			<tags>Sql Server, Stored Procedure</tags>
+			<projectUrl>https://github.com/sebbie/SqlQuery</projectUrl>
 		</metadata>
 		<files>
 			<file src="SqlQuery.tt" target="content\SqlQuery.tt" />
