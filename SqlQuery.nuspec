@@ -2,17 +2,16 @@
 	<package>
 		<metadata>
 			<id>SqlQuery</id>
-			<version>0.1.0</version>
+			<version>0.2.0</version>
 			<authors>Sebastian Pienio</authors>
 			<licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
 			<requireLicenseAcceptance>true</requireLicenseAcceptance>
 			<description>SqlQuery library to query SQL Server stored procedures faster, easier and quicker</description>
-			<releaseNotes>This is initial release</releaseNotes>
-			<copyright>2017</copyright>
+			<releaseNotes>This is interim release with single file</releaseNotes>
+			<copyright>2017-2019</copyright>
 			<tags>Sql Server, Stored Procedure</tags>
 		</metadata>
 		<files>
-			<file src="SqlProcs.tt" target="content\SqlProcs.tt" />
 			<file src="SqlQuery.tt" target="content\SqlQuery.tt" />
 		</files>
 	</package>

@@ -147,6 +147,11 @@ public partial class DboGetAllMakesAndModelsResult
 }
 ```
 
+## Documentation ToDo
+
+- Generating dictionaries from database as Enum in code
+- Handling timeouts and deadlocks
+
 # Dealing with problems
 
 Should you encounter a problem try to open SqlQuery.tt and select "Current Document" in "Error list". This will show only issues related to SqlQuery instead of flooding window with large numbers of errors caused by side effects.
