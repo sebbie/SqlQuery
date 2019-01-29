@@ -4,7 +4,7 @@ Fast, lightweight and strongly typed library to query stored procedures. It offe
 # Setup in 30 seconds
 
 1. Install-Package SqlQuery
-2. Open SqlProcs.tt and setup connection string, ie.
+2. Open SqlQuery.tt and setup connection string, ie.
 ```csharp
 	sqlQuery.ConnectionString = "Server=.;Database=MyDatabaseName;Trusted_Connection=True;";
 ```
@@ -156,4 +156,4 @@ public partial class DboGetAllMakesAndModelsResult
 
 Should you encounter a problem try to open SqlQuery.tt and select "Current Document" in "Error list". This will show only issues related to SqlQuery instead of flooding window with large numbers of errors caused by side effects.
 
-Remember TT will only regenerate if you save SqlProcs.tt. Engine is included in SqlQuery.tt, files are split so you won't lose config when upgrading library.
+Remember TT will only regenerate if you save SqlProcs.tt or "Run Custom Tool" in Visual Studio. Any suggestions are welcome.
