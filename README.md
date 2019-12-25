@@ -71,6 +71,18 @@ var result = await Sql.DbRepository.DboGetAllMakesAndModelsAsync();
 var hasEngineCc = result.Models.First().EngineCapacityCc.HasValue ? "Has engine capacity" : "doesn't";
 ```
 
+You can also execute arbitrary SQL instead of stored procedure, only requirement is to pass "name" for calling purposes, for example:
+
+```csharp
+sqlQuery.Add(new SqlRawQuery("GetAllTablesInDatabase", "SELECT TOP 10 * FROM sys.tables").ResultSets("Table"));
+```
+
+Then call in the same was as sproc, using passed "name":
+
+```csharp
+var allTables = (await DAO.Sql.DbRepository.GetAllTablesInDatabaseAsync()).Tables;
+```
+
 ## Changing connection string and Dependency Injection
 
 To change connection string use static method below or integrate into Dependency Injection:

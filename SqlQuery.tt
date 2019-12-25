@@ -18,6 +18,7 @@
 	sqlQuery.Add(new SqlProc("dbo.GetAllMakesAndModels").ResultSets("Make", "Model;EngineCapacityCc;IsManufactured"));
 	sqlQuery.Add(new SqlProc("dbo.AddModels").SetParameterValue("makeId", "1"));
 
+	sqlQuery.Add(new SqlRawQuery("GetAllTablesInDatabase", "SELECT TOP 10 * FROM sys.tables").ResultSets("Table"));
 
     sqlQuery.Add(new SqlEnum("dbo.CarTypes", "CarTypeName", "CarTypeId", "CarTypeEnum"));
 
@@ -339,7 +340,10 @@ namespace <#= sqlQuery.Namespace #>
 #>
 	public static class <#= sqlProc.CSharpNameUtilsClass #>
 	{
-		public const string storedProcedureName = "<#= sqlProc.SqlCallProc #>";
+		public const string StoredProcedureName = "<#= sqlProc.SqlCallProc #>";
+<#		string sqlToExecute = sqlProc.QueryType == SqlProc.QueryTypeEnum.RawQuery ? ((SqlRawQuery)sqlProc).RawSql : sqlProc.SqlCallProc; #>
+		public const string SqlToExecute = "<#= sqlToExecute #>";
+		
 
 		public static async Task<<#= sqlProc.CSharpResultClassName #>> Query(ISqlExecute sqlExecute<#= sqlProc.Parameters.Any() ? ", " : "" #><#= sqlProc.CSharpParametersList #>, SqlExecuteOptions sqlExecuteOptions)
 		{
@@ -584,34 +588,39 @@ namespace <#= sqlQuery.Namespace #>
 					});
 				// read parameters list
 				sqlProc.Parameters = new List<SqlProcParameter>();
-				ExecuteQuery("select pa.name ParamName, pa.parameter_id ParameterOrder, ty.name ParamType, CAST(CASE WHEN ty.system_type_id <> ty.user_type_id THEN 1 ELSE 0 END AS BIT) IsTvp from sys.parameters pa join sys.types ty on ty.user_type_id = pa.user_type_id and ty.system_type_id = pa.system_type_id where object_id = " + sqlProc.ObjectId + " order by parameter_id", row =>
-					{
-						sqlProc.Parameters.Add(new SqlProcParameter(row.GetString(0).Substring(1), row.GetString(2), row.GetBoolean(3)));
-					});
-				// read tvp definitions
-				foreach(var param in sqlProc.Parameters.Where(p => p.IsTvp))
+				if( sqlProc.QueryType != SqlProc.QueryTypeEnum.RawQuery)
 				{
-					// tvp object id
-					ExecuteQuery("select tt.type_table_object_id from sys.table_types tt where tt.name = '" + param.ParameterType + "'", row =>
+					ExecuteQuery("select pa.name ParamName, pa.parameter_id ParameterOrder, ty.name ParamType, CAST(CASE WHEN ty.system_type_id <> ty.user_type_id THEN 1 ELSE 0 END AS BIT) IsTvp from sys.parameters pa join sys.types ty on ty.user_type_id = pa.user_type_id and ty.system_type_id = pa.system_type_id where object_id = " + sqlProc.ObjectId + " order by parameter_id", row =>
 						{
-							param.TvpObjectId = row.GetInt32(0);
+							sqlProc.Parameters.Add(new SqlProcParameter(row.GetString(0).Substring(1), row.GetString(2), row.GetBoolean(3)));
 						});
-					// tvp columns
-					param.TvpColumns = new List<SqlProcColumn>();
-					ExecuteQuery("select c.name TvpColumnName, c.column_id ColumnIx, ty.name TypeName, c.is_nullable IsNullable from sys.columns c join sys.types ty on ty.user_type_id = c.user_type_id and ty.system_type_id = c.system_type_id where c.object_id = " + param.TvpObjectId, row =>
-						{
-							param.TvpColumns.Add(new SqlProcColumn(
-								row.GetString(0),
-								row.GetInt32(1),
-								row.GetString(2),
-								row.GetBoolean(3)));
-						});
+					// read tvp definitions
+					foreach(var param in sqlProc.Parameters.Where(p => p.IsTvp))
+					{
+						// tvp object id
+						ExecuteQuery("select tt.type_table_object_id from sys.table_types tt where tt.name = '" + param.ParameterType + "'", row =>
+							{
+								param.TvpObjectId = row.GetInt32(0);
+							});
+						// tvp columns
+						param.TvpColumns = new List<SqlProcColumn>();
+						ExecuteQuery("select c.name TvpColumnName, c.column_id ColumnIx, ty.name TypeName, c.is_nullable IsNullable from sys.columns c join sys.types ty on ty.user_type_id = c.user_type_id and ty.system_type_id = c.system_type_id where c.object_id = " + param.TvpObjectId, row =>
+							{
+								param.TvpColumns.Add(new SqlProcColumn(
+									row.GetString(0),
+									row.GetInt32(1),
+									row.GetString(2),
+									row.GetBoolean(3)));
+							});
+					}
 				}
 				// result sets
 				var nonTvpParams = sqlProc.Parameters.Where(p => !p.IsTvp).ToList();
 				int numberOfResultSetsRetrieved = 0;
-				InspectResultSets("EXEC " + sqlProc.ProcName + " " +
-					string.Join(", ", nonTvpParams.Select(p => "@" + p.ParameterName + "=" + (sqlProc.GetParameterValue(p.ParameterName) ?? SqlDataTypesHelper.GetDefaultSqlValue(p.ParameterType)))), 
+				string sqlToExecute = sqlProc.QueryType == SqlProc.QueryTypeEnum.RawQuery ?
+					((SqlRawQuery)sqlProc).RawSql :
+					$"EXEC {sqlProc.ProcName} " + string.Join(", ", nonTvpParams.Select(p => "@" + p.ParameterName + "=" + (sqlProc.GetParameterValue(p.ParameterName) ?? SqlDataTypesHelper.GetDefaultSqlValue(p.ParameterType))));
+				InspectResultSets(sqlToExecute, 
                     (resultSetIx, row) =>
 					{
 						if( resultSetIx > numberOfResultSetsRetrieved)
@@ -708,8 +717,28 @@ namespace <#= sqlQuery.Namespace #>
 		}
 	}
 
+	public class SqlRawQuery : SqlProc
+	{
+		public override QueryTypeEnum QueryType {get; set;} = QueryTypeEnum.RawQuery;
+
+		public string RawSql { get; set; }
+		
+		public SqlRawQuery(string procName, string rawSql)
+			: base(procName)
+		{
+			RawSql = rawSql;
+		}
+	}
+
 	public class SqlProc
 	{
+		public enum QueryTypeEnum
+		{
+			StoredProcedure,
+			RawQuery
+		}
+		public virtual QueryTypeEnum QueryType {get; set;} = QueryTypeEnum.StoredProcedure;
+
 		public string ProcName { get; set; }
 		public List<SqlProcResultSet> SqlProcResultSets { get; set; }
 
