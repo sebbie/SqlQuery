@@ -42,27 +42,23 @@ namespace <#= sqlQuery.Namespace #>
 {
 	public static class Sql
 	{
-		private static string connectionString = "<#= sqlQuery.ConnectionString.Replace("\\", "\\\\") #>";
 		private static SqlExecuteConnectionManagerDefault sqlConnectionManager = null;
-		private static ISqlExecute sqlExecute = null;
-		private static IDbRepository dbRepo = null;
+		private static ISqlExecute _sqlExecute = null;
+		private static IDbRepository _dbRepo = null;
 
-		public static string ConnectionString
-		{
-			get { return connectionString; }
-			set { connectionString = value; }
-		}
+		public static string ConnectionString { get; set; } = "<#= sqlQuery.ConnectionString.Replace("\\", "\\\\") #>";
+
 		public static IDbRepository DbRepository
 		{
 			get
 			{
-				if( dbRepo == null || sqlConnectionManager.ConnectionString != ConnectionString)
+				if( _dbRepo == null || sqlConnectionManager.ConnectionString != ConnectionString)
 				{
 					sqlConnectionManager = new SqlExecuteConnectionManagerDefault(ConnectionString);
-					sqlExecute = new SqlExecute(sqlConnectionManager);
-					dbRepo = new DbRepository(sqlExecute);
+					_sqlExecute = new SqlExecute(sqlConnectionManager);
+					_dbRepo = new DbRepository(_sqlExecute);
 				}
-				return dbRepo;
+				return _dbRepo;
 			}
 		}
 	}
@@ -343,7 +339,7 @@ namespace <#= sqlQuery.Namespace #>
 #>
 	public static class <#= sqlProc.CSharpNameUtilsClass #>
 	{
-		private const string storedProcedureName = "<#= sqlProc.SqlCallProc #>";
+		public const string storedProcedureName = "<#= sqlProc.SqlCallProc #>";
 
 		public static async Task<<#= sqlProc.CSharpResultClassName #>> Query(ISqlExecute sqlExecute<#= sqlProc.Parameters.Any() ? ", " : "" #><#= sqlProc.CSharpParametersList #>, SqlExecuteOptions sqlExecuteOptions)
 		{
@@ -680,7 +676,7 @@ namespace <#= sqlQuery.Namespace #>
 				}
                 catch(Exception ex)
                 {
-                    throw new Exception($"SqlCommand='{sqlCommand}'", ex);
+                    throw new Exception($"SqlCommand='{sqlCommand}' ConnectionString='{ConnectionString}'", ex);
                 }
 				finally
 				{
