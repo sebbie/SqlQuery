@@ -198,6 +198,9 @@ namespace <#= sqlQuery.Namespace #>
 
         public DateTime? GetDateTime(int ix) => SqlDataReader.IsDBNull(ix) ? (DateTime?)null : SqlDataReader.GetDateTime(ix);
         public DateTime GetDateTime(int ix, DateTime defVal) => GetDateTime(ix) ?? defVal;
+
+		public Guid? GetGuid(int ix) => SqlDataReader.IsDBNull(ix) ? (Guid?)null : SqlDataReader.GetGuid(ix);
+        public Guid GetGuid(int ix, Guid defVal) => GetGuid(ix) ?? defVal;
 	}
 	public class SqlExecute : ISqlExecute
 	{
@@ -986,6 +989,9 @@ namespace <#= sqlQuery.Namespace #>
 				case "bigint":
 				case "decimal":
 					return "0";
+				
+				case "uniqueidentifier":
+					return "'00000000-0000-0000-0000-000000000000'";
 			}
 			return "''";
 		}
@@ -1034,6 +1040,9 @@ namespace <#= sqlQuery.Namespace #>
 
 				case "xml":
 					return "string";
+
+				case "uniqueidentifier":
+					return "Guid" + suffix;
 
 				default:
 					return "unknown_type_" + sqlType;
@@ -1084,6 +1093,9 @@ namespace <#= sqlQuery.Namespace #>
                     break;
                 case "xml":
                     methodName = "GetXml(" + colIx + (nullable ? "" : ", default(string)") + ")";
+                    break;
+				case "Guid":
+                    methodName = "GetGuid(" + colIx + (nullable ? "" : ", default(Guid)") + ")";
                     break;
 			}
 			return methodName;
