@@ -122,6 +122,9 @@ namespace <#= sqlQuery.Namespace #>
         private OnErrorHandler _onError;
         public OnErrorHandler OnError { get => _onError ?? GlobalSqlExecuteOptions?.OnError; set => _onError = value; }
 
+		private bool? _rollbackTransaction;
+        public bool? RollbackTransaction { get => _rollbackTransaction ?? GlobalSqlExecuteOptions?.RollbackTransaction; set => _rollbackTransaction = value; }
+
         public SqlExecuteOptions ApplyGlobalGlobalSqlExecuteOptions(SqlExecuteOptions sqlExecuteOptions)
         {
             GlobalSqlExecuteOptions = sqlExecuteOptions;
@@ -277,7 +280,12 @@ namespace <#= sqlQuery.Namespace #>
 						} while (readNextResultSet);
 						sqlDataReader.Close();
 						if (sqlTransaction != null)
-							sqlTransaction.Commit();
+                        {
+                            if( sqlExecuteOptions?.RollbackTransaction == true)
+                                sqlTransaction.Rollback();
+                            else
+                                sqlTransaction.Commit();
+                        }
 						sqlTransaction = null;
 					}
 					keepExecuting = false;
@@ -285,7 +293,7 @@ namespace <#= sqlQuery.Namespace #>
 				catch(Exception ex)
 				{
 					bool errorHandled = false;
-                    if (sqlExecuteOptions.OnError != null)
+                    if (sqlExecuteOptions?.OnError != null)
 					{
                         errorHandleDecision = sqlExecuteOptions.OnError(ex, errorHandleDecision, sql, parameters);
                         if (errorHandleDecision != null)
