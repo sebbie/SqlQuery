@@ -224,7 +224,8 @@ namespace <#= sqlQuery.Namespace #>
 				{
 					using (var sqlConnection = SqlExecuteConnectionManager.GetSqlConnection())
 					{
-						sqlConnection.Open();
+						if( sqlConnection.State != ConnectionState.Open)
+							sqlConnection.Open();
 						sqlTransaction = sqlConnection.BeginTransaction();
 
 						var sqlCmd = new SqlCommand(sql, sqlConnection, sqlTransaction);
