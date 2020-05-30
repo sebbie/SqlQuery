@@ -302,16 +302,10 @@ namespace <#= sqlQuery.Namespace #>
                         }
                     }
 
+                    sqlTransaction?.Rollback();
+
                     if (!errorHandled)
 						throw new Exception($"Sql '{sql}' failed: {ex.Message}", ex);
-				}
-				finally
-				{
-					try
-					{
-						sqlTransaction?.Rollback();
-					}
-					catch { }
 				}
 			}
 		}
@@ -368,7 +362,7 @@ namespace <#= sqlQuery.Namespace #>
 		}
 #>
 
-			var executeSqlStatus = sqlExecute.ExecuteSql(storedProcedureName, parameters, sqlExecutePopulateRowCtx =>
+			var executeSqlStatus = sqlExecute.ExecuteSql(StoredProcedureName, parameters, sqlExecutePopulateRowCtx =>
 			{
 <#
 				if(sqlProc.SqlProcResultSets.Any())
@@ -686,12 +680,9 @@ namespace <#= sqlQuery.Namespace #>
 				}
                 catch(Exception ex)
                 {
+                    sqlTransaction?.Rollback();
                     throw new Exception($"SqlCommand='{sqlCommand}' ConnectionString='{ConnectionString}'", ex);
                 }
-				finally
-				{
-					sqlTransaction.Rollback();
-				}
 			}
 		}
 		private void ExecuteQuery(string sqlCommand, Action<SqlDataReader> readRow)
