@@ -441,7 +441,7 @@ namespace <#= sqlQuery.Namespace #>
 #>
 	public partial class <#= sqlProcParam.CSharpType #>
 	{
-		public static string DbName { get; set; } = "<#= sqlProcParam.ParameterType #>";
+		public static string DbName { get; set; } = "<#= sqlProcParam.TvpSqlTypeName #>";
 
 <#		foreach(SqlProcColumn column in sqlProcParam.TvpColumns)
 		{
@@ -585,9 +585,9 @@ namespace <#= sqlQuery.Namespace #>
 				sqlProc.Parameters = new List<SqlProcParameter>();
 				if( sqlProc.QueryType != SqlProc.QueryTypeEnum.RawQuery)
 				{
-					ExecuteQuery("select pa.name ParamName, pa.parameter_id ParameterOrder, ty.name ParamType, CAST(CASE WHEN ty.system_type_id <> ty.user_type_id THEN 1 ELSE 0 END AS BIT) IsTvp from sys.parameters pa join sys.types ty on ty.user_type_id = pa.user_type_id and ty.system_type_id = pa.system_type_id where object_id = " + sqlProc.ObjectId + " order by parameter_id", row =>
+					ExecuteQuery("select pa.name ParamName, pa.parameter_id ParameterOrder, sch.name SchemaName, ty.name ParamType, CAST(CASE WHEN ty.system_type_id <> ty.user_type_id THEN 1 ELSE 0 END AS BIT) IsTvp from sys.parameters pa join sys.types ty on ty.user_type_id = pa.user_type_id and ty.system_type_id = pa.system_type_id JOIN sys.schemas sch ON sch.schema_id = ty.schema_id where object_id = " + sqlProc.ObjectId + " order by parameter_id", row =>
 						{
-							sqlProc.Parameters.Add(new SqlProcParameter(row.GetString(0).Substring(1), row.GetString(2), row.GetBoolean(3)));
+							sqlProc.Parameters.Add(new SqlProcParameter(row.GetString(0).Substring(1), row.GetString(2), row.GetString(3), row.GetBoolean(4)));
 						});
 					// read tvp definitions
 					foreach(var param in sqlProc.Parameters.Where(p => p.IsTvp))
@@ -847,17 +847,20 @@ namespace <#= sqlQuery.Namespace #>
 	public class SqlProcParameter
 	{
 		public string ParameterName { get; set; }
+		public string ParameterTypeSchema { get; set; }
 		public string ParameterType { get; set; }
 		public bool IsTvp { get; set; }
 		public int TvpObjectId { get; set; }
 		public List<SqlProcColumn> TvpColumns { get; set; }
+        private bool TvpIsDboSchema => string.Equals(ParameterTypeSchema, "dbo", StringComparison.InvariantCultureIgnoreCase);
+        public string TvpSqlTypeName => TvpIsDboSchema ? ParameterType : $"{ParameterTypeSchema}.{ParameterType}";
 
 		/* Helper properties */
 		public string CSharpType
 		{
 			get
 			{
-				return IsTvp ? ParameterType : SqlDataTypesHelper.SqlTypeToCsharpType(ParameterType, true);
+				return IsTvp ? $"{(TvpIsDboSchema ? "" : (ParameterTypeSchema[0].ToString().ToUpper() + ParameterTypeSchema.Substring(1)))}{ParameterType}" : SqlDataTypesHelper.SqlTypeToCsharpType(ParameterType, true);
 			}
 		}
 		public string CSharpPropertyType { get { return IsTvp ? "List<" + CSharpType + ">" : CSharpType; } }
@@ -871,9 +874,10 @@ namespace <#= sqlQuery.Namespace #>
 			}
 		}
 
-		public SqlProcParameter(string parameterName, string parameterType, bool isTvp)
+		public SqlProcParameter(string parameterName, string parameterTypeSchema, string parameterType, bool isTvp)
 		{
 			ParameterName = parameterName;
+		    ParameterTypeSchema = parameterTypeSchema;
 			ParameterType = parameterType;
 			IsTvp = isTvp;
 		}
