@@ -302,7 +302,11 @@ namespace <#= sqlQuery.Namespace #>
                         }
                     }
 
-                    sqlTransaction?.Rollback();
+					try
+					{
+						sqlTransaction?.Rollback();
+					}
+					catch( Exception exceptionToIgnore) { }
 
                     if (!errorHandled)
 						throw new Exception($"Sql '{sql}' failed: {ex.Message}", ex);
