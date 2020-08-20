@@ -986,7 +986,7 @@ namespace <#= sqlQuery.Namespace #>
         {
             get
             {
-                return string.Join("", Text.Split(new[] { ".", " " }, StringSplitOptions.RemoveEmptyEntries)
+                return string.Join("", Text.Split(new[] { ".", " ", "-" }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(pn => pn.Substring(0,1).ToUpper() + pn.Substring(1)));
             }
         }
